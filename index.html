@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Scheduler - Admin Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Admin Login</h1>
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <input type="text" id="username" placeholder="Username" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <input type="password" id="password" placeholder="Password" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit"
+                    class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300">
+                Login
+            </button>
+        </form>
+        <p class="error text-red-500 text-center mt-4 hidden" id="errorMessage">Invalid username or password</p>
+    </div>
+    
+<!-- Add spinner -->
+<div id="loadingSpinner" class="hidden animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('errorMessage');
+        const spinner = document.getElementById('loadingSpinner');
+        
+        spinner.classList.remove('hidden');
+        errorMessage.classList.add('hidden');
+
+        fetch('api/login.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            spinner.classList.add('hidden');
+            if (data.success) {
+                localStorage.setItem('isLoggedIn', 'true');
+                Toastify({
+                    text: "Login successful!",
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#4CAF50"
+                }).showToast();
+                window.location.href = 'adminpanel.html';
+            } else {
+                errorMessage.classList.remove('hidden');
+                Toastify({
+                    text: data.error || "Invalid credentials",
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#EF4444"
+                }).showToast();
+            }
+        })
+        .catch(error => {
+            spinner.classList.add('hidden');
+            errorMessage.classList.remove('hidden');
+            console.error('Error:', error);
+        });
+    });
+
+</script>
+</body>
+</html>

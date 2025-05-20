@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Scheduler - Player</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        .calendar-panel {
+            font-family: 'Poppins', sans-serif;
+        }
+        .day-cell {
+            transition: all 0.2s ease;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .scheduled-day {
+            background: linear-gradient(135deg, #60a5fa, #ff8a8a);
+            color: white;
+            font-weight: 500;
+            animation: pulse 2s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.5), 0 0 20px rgba(255, 138, 138, 0.3);
+            border-radius: 8px;
+        }
+        @keyframes pulse {
+            0% {
+                background: linear-gradient(135deg, #60a5fa, #ff8a8a);
+                box-shadow: 0 0 10px rgba(96, 165, 250, 0.5), 0 0 20px rgba(255, 138, 138, 0.3);
+            }
+            50% {
+                background: linear-gradient(135deg, #3b82f6, #f87171);
+                box-shadow: 0 0 15px rgba(96, 165, 250, 0.7), 0 0 25px rgba(255, 138, 138, 0.5);
+            }
+            100% {
+                background: linear-gradient(135deg, #60a5fa, #ff8a8a);
+                box-shadow: 0 0 10px rgba(96, 165, 250, 0.5), 0 0 20px rgba(255, 138, 138, 0.3);
+            }
+        }
+        .scheduled-day:hover {
+            background: linear-gradient(135deg, #2563eb, #dc2626);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.8), 0 0 30px rgba(255, 138, 138, 0.6);
+            animation: none;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .schedule-box {
+            transition: all 0.3s ease;
+        }
+        .schedule-item {
+            transition: all 0.3s ease;
+        }
+        .schedule-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            border-color: #ff8a8a;
+        }
+        .info-label {
+            color: #1e40af;
+            font-weight: 600;
+        }
+        .info-value {
+            color: #4b5563;
+        }
+        .notification-box {
+            background: linear-gradient(135deg, #ffffff, #e0f2fe);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            max-height: 240px;
+            overflow-y: auto;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .notification-close {
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 1.25rem;
+            transition: color 0.2s ease;
+        }
+        .notification-close:hover {
+            color: #1e40af;
+        }
+        .notification-list {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 0.5rem;
+        }
+        .notification-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .notification-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background-color: #f0f7ff;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 0.75rem;
+            color: #2563eb;
+        }
+        .notification-text {
+            font-size: 0.9rem;
+            color: #1f2937;
+            font-weight: 500;
+        }
+        .notification-text .action-added {
+            color: #2f855a;
+            font-weight: 700;
+        }
+        .notification-text .action-updated {
+            color: #d97706;
+            font-weight: 700;
+        }
+        .notification-text .group {
+            color: #1e40af;
+            font-weight: 600;
+        }
+        @media (max-width: 640px) {
+            .notification-box {
+                padding: 0.75rem;
+                max-height: 160px;
+                margin-bottom: 1rem;
+            }
+            .notification-item {
+                font-size: 0.75rem;
+                padding: 0.4rem;
+            }
+            .notification-text {
+                font-size: 0.75rem;
+            }
+            .notification-icon {
+                width: 16px;
+                height: 16px;
+                margin-right: 0.5rem;
+            }
+            .notification-header {
+                margin-bottom: 0.5rem;
+            }
+            .notification-close {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto max-w-6xl bg-white rounded-lg shadow-lg p-6 mt-6">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Sports Schedules - Player</h1>
+
+        <!-- Notification Area -->
+        <div class="notification-box hidden" id="notificationBox">
+            <div class="notification-header">
+                <h3 class="text-lg font-semibold text-gray-800">Recent Updates</h3>
+                <span class="notification-close" onclick="document.getElementById('notificationBox').classList.add('hidden')">×</span>
+            </div>
+            <div id="notificationList" class="notification-list"></div>
+        </div>
+
+        <!-- Search Bar with Dropdown -->
+        <div class="search-bar mb-6">
+            <select id="playerSearch" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="" disabled selected>See Your Date</option>
+                <option value="Hafeez">Hafeez</option>
+                <option value="Shadik">Shadik</option>
+                <option value="Sanny">Sanny</option>
+                <option value="Sabil">Sabil</option>
+                <option value="Dorin">Dorin</option>
+                <option value="Shakil">Shakil</option>
+                <option value="Junayet">Junayet</option>
+                <option value="Akash">Akash</option>
+                <option value="Sagor">Sagor</option>
+            </select>
+        </div>
+
+        <!-- Calendar Section -->
+        <div class="calendar-panel bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg shadow-xl">
+            <h2 class="text-2xl font-semibold text-center text-blue-800 mb-6">Schedule Calendar</h2>
+            <div class="flex justify-between items-center mb-6">
+                <button id="prevMonth" class="nav-button bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700">Previous</button>
+                <h3 id="currentMonth" class="text-xl font-semibold text-blue-900"></h3>
+                <button id="nextMonth" class="nav-button bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700">Next</button>
+            </div>
+            <div class="grid grid-cols-7 gap-2 text-center">
+                <div class="font-semibold text-blue-700">Sun</div>
+                <div class="font-semibold text-blue-700">Mon</div>
+                <div class="font-semibold text-blue-700">Tue</div>
+                <div class="font-semibold text-blue-700">Wed</div>
+                <div class="font-semibold text-blue-700">Thu</div>
+                <div class="font-semibold text-blue-700">Fri</div>
+                <div class="font-semibold text-blue-700">Sat</div>
+                <div id="calendarDays" class="grid grid-cols-7 gap-2 col-span-7"></div>
+            </div>
+            <div id="scheduleBox" class="schedule-box mt-6 hidden p-4 bg-white rounded-lg shadow-md border border-blue-200"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        let schedules = [];
+        let currentDate = new Date('2025-04-26');
+        let lastChecked = new Date().toISOString(); // Track last check time for notifications
+
+        function loadSchedules() {
+            fetch('api/schedules.php')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Fetched schedules:', data); // Debug log
+                    schedules = data;
+                    renderCalendar();
+                    checkForNotifications(); // Check for new updates after loading
+                })
+                .catch(error => {
+                    console.error('Error loading schedules:', error);
+                    renderCalendar();
+                    Toastify({
+                        text: "Failed to load schedules. Please try again later.",
+                        duration: 3000,
+                        gravity: "top",
+                        position: "right",
+                        backgroundColor: "#EF4444"
+                    }).showToast();
+                });
+        }
+
+        function checkExpiredSchedules() {
+            const now = new Date();
+            const twentyFiveMinutesAgo = new Date(now.getTime() - 25 * 60 * 1000);
+
+            let deletedScheduleIds = [];
+
+            // Identify schedules to be deleted
+            schedules.forEach(schedule => {
+                const scheduleDateTime = new Date(`${schedule.date}T${schedule.time}`);
+                if (scheduleDateTime < twentyFiveMinutesAgo) {
+                    deletedScheduleIds.push(schedule.id);
+                }
+            });
+
+            // Immediately update local schedules and calendar
+            if (deletedScheduleIds.length > 0) {
+                schedules = schedules.filter(schedule => !deletedScheduleIds.includes(schedule.id));
+                renderCalendar(); // Refresh calendar instantly
+            }
+
+            // Send DELETE requests for expired schedules
+            deletedScheduleIds.forEach(scheduleId => {
+                fetch('api/schedules.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ _method: 'DELETE', id: scheduleId })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        console.log(`Schedule ${scheduleId} deleted`);
+                    } else {
+                        console.error('Failed to delete schedule:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting schedule:', error);
+                });
+            });
+
+            // Refresh schedules from server to ensure consistency
+            loadSchedules();
+        }
+
+        function checkForNotifications() {
+            const selectedPlayer = document.getElementById('playerSearch').value;
+            const notificationBox = document.getElementById('notificationBox');
+            const notificationList = document.getElementById('notificationList');
+
+            // Debug: Log client time and timezone
+            console.log('Current client time:', new Date().toISOString());
+            console.log('Client timezone offset:', new Date().getTimezoneOffset() / -60, 'hours from UTC');
+            console.log('Schedules:', schedules);
+
+            // Filter schedules for the selected player and recent changes (within last 1 hour)
+            let recentSchedules = schedules.filter(schedule => {
+                const createdAt = new Date(schedule.createdAt);
+                const updatedAt = schedule.updatedAt ? new Date(schedule.updatedAt) : null;
+                const oneHourAgo = new Date(new Date().getTime() - 60 * 60 * 1000); // 1 hour
+                const isRecent = (createdAt > oneHourAgo && !updatedAt) || (updatedAt && updatedAt > oneHourAgo);
+                console.log(`Schedule ${schedule.id}: createdAt=${schedule.createdAt}, updatedAt=${schedule.updatedAt}, isRecent=${isRecent}`);
+                return isRecent && (!selectedPlayer || schedule.players.includes(selectedPlayer));
+            });
+
+            // Sort schedules by latest timestamp (updatedAt or createdAt)
+            recentSchedules.sort((a, b) => {
+                const aTime = a.updatedAt ? new Date(a.updatedAt) : new Date(a.createdAt);
+                const bTime = b.updatedAt ? new Date(b.updatedAt) : new Date(b.createdAt);
+                return bTime - aTime; // Descending order
+            });
+
+            // Limit to maximum 3 notifications
+            recentSchedules = recentSchedules.slice(0, 3);
+
+            console.log('Recent schedules:', recentSchedules);
+
+            // Fallback: If no recent schedules, show all schedules for debugging
+            if (recentSchedules.length === 0 && schedules.length > 0) {
+                console.log('No recent schedules found. Showing all schedules as fallback.');
+                recentSchedules = schedules.filter(schedule => 
+                    !selectedPlayer || schedule.players.includes(selectedPlayer)
+                ).sort((a, b) => {
+                    const aTime = a.updatedAt ? new Date(a.updatedAt) : new Date(a.createdAt);
+                    const bTime = b.updatedAt ? new Date(b.updatedAt) : new Date(b.createdAt);
+                    return bTime - aTime; // Descending order
+                }).slice(0, 3);
+            }
+
+            if (recentSchedules.length > 0) {
+                notificationBox.classList.remove('hidden');
+                notificationList.innerHTML = '';
+
+                recentSchedules.forEach(schedule => {
+                    const formattedTime = formatTimeTo12Hour(schedule.time);
+                    const isUpdated = schedule.updatedAt && new Date(schedule.updatedAt) > new Date(schedule.createdAt);
+                    const action = isUpdated ? 'updated' : 'added';
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = 'notification-item';
+                    notificationItem.innerHTML = `
+                        <svg class="notification-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        <span class="notification-text">
+                            Schedule <span class="action-${action}">${action}</span> for ${schedule.date} at ${formattedTime}
+                            (Group: <span class="group">${schedule.groupName}</span>)
+                        </span>
+                    `;
+                    notificationList.appendChild(notificationItem);
+
+                    // Show Toastify notification
+                    Toastify({
+                        text: `Schedule ${action}: ${schedule.date} at ${formattedTime} (${schedule.groupName})`,
+                        duration: 3000,
+                        gravity: "top",
+                        position: "right",
+                        backgroundColor: isUpdated ? "#FFA500" : "#4CAF50" // Orange for updates, green for additions
+                    }).showToast();
+                });
+            } else {
+                notificationBox.classList.add('hidden');
+                console.log('No schedules to display.');
+                Toastify({
+                    text: "No recent schedules found.",
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#EF4444"
+                }).showToast();
+            }
+
+            // Update lastChecked time
+            lastChecked = new Date().toISOString();
+        }
+
+        function renderCalendar() {
+            const calendarDays = document.getElementById('calendarDays');
+            const currentMonthLabel = document.getElementById('currentMonth');
+            const scheduleBox = document.getElementById('scheduleBox');
+            const selectedPlayer = document.getElementById('playerSearch').value;
+            calendarDays.innerHTML = '';
+            scheduleBox.classList.add('hidden');
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+
+            currentMonthLabel.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+
+            // Filter schedules based on the selected player
+            const filteredSchedules = selectedPlayer
+                ? schedules.filter(schedule => schedule.players.includes(selectedPlayer))
+                : schedules;
+
+            // Get scheduled dates for the current month
+            const scheduledDates = new Set(filteredSchedules
+                .filter(schedule => {
+                    const scheduleDate = new Date(schedule.date);
+                    return scheduleDate.getFullYear() === year && scheduleDate.getMonth() === month;
+                })
+                .map(schedule => new Date(schedule.date).getDate())
+            );
+
+            // Add empty cells for days before the 1st
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'p-3';
+                calendarDays.appendChild(emptyCell);
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= lastDate; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = `day-cell p-3 rounded-lg text-center cursor-pointer relative ${scheduledDates.has(day) ? 'scheduled-day' : 'bg-white border border-gray-200'}`;
+                dayCell.textContent = day;
+
+                if (scheduledDates.has(day)) {
+                    dayCell.addEventListener('click', () => showSchedulesForDate(day, month, year));
+                }
+
+                calendarDays.appendChild(dayCell);
+            }
+        }
+
+        function showSchedulesForDate(day, month, year) {
+            const scheduleBox = document.getElementById('scheduleBox');
+            const selectedPlayer = document.getElementById('playerSearch').value;
+            scheduleBox.innerHTML = '';
+            scheduleBox.classList.remove('hidden');
+
+            const selectedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            let daySchedules = schedules.filter(schedule => schedule.date === selectedDate);
+
+            // Filter schedules by selected player if one is chosen
+            if (selectedPlayer) {
+                daySchedules = daySchedules.filter(schedule => schedule.players.includes(selectedPlayer));
+            }
+
+            if (daySchedules.length === 0) {
+                scheduleBox.innerHTML = '<p class="text-gray-500 text-center">No schedules for this date.</p>';
+                scheduleBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+
+            const now = new Date();
+            const twentyFiveMinutesAgo = new Date(now.getTime() - 25 * 60 * 1000);
+
+            daySchedules.forEach(schedule => {
+                const formattedTime = formatTimeTo12Hour(schedule.time);
+                const scheduleDateTime = new Date(`${schedule.date}T${schedule.time}`);
+                const isExpired = scheduleDateTime < now; // Mark as expired immediately after schedule time
+                const isRemoved = scheduleDateTime < twentyFiveMinutesAgo; // Removed after 25 minutes
+
+                if (!isRemoved) {
+                    const scheduleItem = document.createElement('div');
+                    scheduleItem.className = `schedule-item border border-gray-200 p-4 rounded-lg bg-white mb-2 ${isExpired ? 'opacity-70 border-l-4 border-red-500' : ''}`;
+                    scheduleItem.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-sm">
+                                <span class="info-label">Time:</span> 
+                                <span class="info-value">${formattedTime}</span> | 
+                                <span class="info-label">Group:</span> 
+                                <span class="info-value">${schedule.groupName}</span>
+                            </p>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-2a4 4 0 014-4h10a4 4 0 014 4v2m-14-9a4 4 0 014-4h2a4 4 0 014 4"></path>
+                            </svg>
+                            <p class="text-sm">
+                                <span class="info-label">Matches:</span> 
+                                <span class="info-value">${schedule.matchCount}</span>
+                            </p>
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            <p class="text-sm">
+                                <span class="info-label">Players:</span> 
+                                <span class="info-value">${schedule.players.join(', ')}</span>
+                            </p>
+                        </div>
+                        ${isExpired ? '<p class="text-red-500 text-sm mt-2">EXPIRED (will be removed soon)</p>' : ''}
+                    `;
+                    scheduleBox.appendChild(scheduleItem);
+                }
+            });
+            scheduleBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function formatTimeTo12Hour(time) {
+            const [hours, minutes] = time.split(':');
+            const hour = parseInt(hours);
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const formattedHour = hour % 12 || 12;
+            return `${formattedHour.toString().padStart(2, '0')}:${minutes} ${period}`;
+        }
+
+        // Event listener for player search dropdown
+        document.getElementById('playerSearch').addEventListener('change', () => {
+            renderCalendar();
+            checkForNotifications();
+        });
+
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        // Load initial data and set up periodic checks
+        loadSchedules();
+        setInterval(checkExpiredSchedules, 60000);
+        setInterval(checkForNotifications, 30000); // Check for notifications every 30 seconds
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9371eb1a5e187bb4',t:'MTc0NTc5NDY0MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93747bfc9d8cbff6',t:'MTc0NTgyMTU0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
