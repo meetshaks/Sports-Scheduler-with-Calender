@@ -9,5 +9,18 @@ CREATE TABLE `schedules` (
   `player3` varchar(255) NOT NULL,
   `player4` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
-)
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `note` varchar(255) DEFAULT NULL
+);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL
+);
